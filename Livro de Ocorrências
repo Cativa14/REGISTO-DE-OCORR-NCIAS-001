@@ -1,1 +1,41 @@
 index.html
+-- 1. TABELA DE DISPOSITIVOS / USUÁRIOS LOCAL
+CREATE TABLE IF NOT EXISTS celulares (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    imei TEXT NOT NULL UNIQUE,
+    modelo TEXT NOT NULL,
+    funcao TEXT NOT NULL DEFAULT 'posto_operacional', -- N1 a N8
+    responsavel_turno INTEGER DEFAULT 0,              -- 0 = Não, 1 = Sim
+    supervisor_id INTEGER,
+    proprietario_nome TEXT NOT NULL,
+    data_registro DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. TABELA DE CICLOS / PLANILHAS MENSAIS (16 a 15)
+CREATE TABLE IF NOT EXISTS planilhas_mensais (
+    id TEXT PRIMARY KEY,
+    codigo_periodo TEXT NOT NULL UNIQUE,
+    data_inicio DATETIME NOT NULL,
+    data_fim DATETIME NOT NULL,
+    status_planilha TEXT DEFAULT 'ATIVA' -- 'ATIVA' ou 'ARQUIVADA'
+);
+
+-- 3. TABELA PRINCIPAL DE OCORRÊNCIAS
+CREATE TABLE IF NOT EXISTS ocorrencias (
+    id TEXT PRIMARY KEY, -- UUID gerado no aplicativo
+    data_registro DATE DEFAULT (CURRENT_DATE),
+    hora_registro TIME DEFAULT (CURRENT_TIME),
+    numero_lo INTEGER NOT NULL,
+    subtitulo TEXT NOT NULL,
+    descricao_ocorrencia TEXT NOT NULL,
+    medidas_tomadas TEXT,
+    status_ocorrencia TEXT DEFAULT 'Em Aberta', -- Em Aberta, Em Andamento, Encaminhada, Encerrada
+    planilha_id TEXT NOT NULL,
+    celular_origem_id INTEGER NOT NULL,
+    dispositivo_editor_id INTEGER NOT NULL,
+    status_escalonamento TEXT DEFAULT 'LOCAL',  -- LOCAL, ESCALADO, SINCRONIZADO
+    editado_flag INTEGER DEFAULT 0,
+    ativo INTEGER DEFAULT 1,                     -- 1 = Ativo, 0 = Removido pelo Admin
+    FOREIGN KEY (planilha_id) REFERENCES planilhas_mensais(id),
+    FOREIGN KEY (celular_origem_id) REFERENCES celulares(id)
+);
